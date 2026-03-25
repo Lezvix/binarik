@@ -48,6 +48,17 @@ export type Compiler<I = Uint8Array> = (
 
 export type Prettify<T> = { [K in keyof T]: T[K] } & {};
 
+/** Marker type for buffer fields — resolved to the compiler's input type `I` at compile time. */
+declare const __inputType: unique symbol;
+export type InputType = { readonly [__inputType]: never };
+
+/** Recursively replace `InputType` with `I` throughout a type. */
+export type ResolveInput<T, I> =
+    T extends InputType ? I :
+    T extends readonly (infer E)[] ? ResolveInput<E, I>[] :
+    T extends Record<string, any> ? { [K in keyof T]: ResolveInput<T[K], I> } :
+    T;
+
 export type BigIntPrimitive =
     | "uint64"
     | "uint64le"
@@ -101,8 +112,8 @@ export type InferChoices<
     ? U
     : never;
 
-export type InferOutput<B> = B extends import("./builder").ParserBuilder<
+export type InferOutput<B, I = Uint8Array> = B extends import("./builder").ParserBuilder<
     infer T extends Record<string, any>
 >
-    ? Prettify<T>
+    ? Prettify<ResolveInput<T, I>>
     : never;

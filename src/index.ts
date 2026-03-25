@@ -1,9 +1,28 @@
 export type {
-    Parser, Endianness, FieldDescriptor, Compiler,
-    Prettify, InferOutput, InferArrayItem, InferChoices,
-    PrimitiveType, BigIntPrimitive, NumberPrimitive,
+    Parser,
+    Endianness,
+    FieldDescriptor,
+    Compiler,
+    Prettify,
+    InferOutput,
+    InferArrayItem,
+    InferChoices,
+    PrimitiveType,
+    BigIntPrimitive,
+    NumberPrimitive,
+    InputType,
+    ResolveInput,
 } from "./types";
 export { ParserBuilder } from "./builder";
 export { compiler, getGeneratedCode } from "./compiler";
-export { generateES3Decoder, generateES3Body, type ES3GenerateResult } from "./es3-compiler";
-export { toKaitaiStruct, type KaitaiStruct, type KaitaiSeqEntry, type KaitaiSwitchType } from "./kaitai-exporter";
+export {
+    generateES3Decoder,
+    generateES3Body,
+    type ES3GenerateResult,
+} from "./es3-compiler";
+export {
+    toKaitaiStruct,
+    type KaitaiStruct,
+    type KaitaiSeqEntry,
+    type KaitaiSwitchType,
+} from "./kaitai-exporter";

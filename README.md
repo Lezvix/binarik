@@ -39,6 +39,20 @@ type Out = InferOutput<typeof p>;
 // { a: number; b: number; c: bigint }
 ```
 
+Buffer fields resolve to the compiler's input type:
+
+```ts
+const p = new ParserBuilder().uint8("len").buffer("data", "len");
+
+// InferOutput defaults to Uint8Array
+type Out = InferOutput<typeof p>;
+// { len: number; data: Uint8Array }
+
+// Or specify a custom input type
+type ES3Out = InferOutput<typeof p, number[]>;
+// { len: number; data: number[] }
+```
+
 ## ParserBuilder API
 
 ### Endianness
@@ -137,7 +151,7 @@ const header = new ParserBuilder().uint8("version").uint16le("flags");
 .buffer("data", "length")    // dynamic length from previous field
 ```
 
-Returns a `Uint8Array` slice of the input.
+Returns a slice of the input matching its type — `Uint8Array` with the standard compiler, plain `number[]` with ES3.
 
 ### Skip / Seek
 

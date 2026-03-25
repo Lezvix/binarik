@@ -1,24 +1,41 @@
 import type { FieldDescriptor } from "./types";
-import { ParserBuilder } from "./builder";
 
 // ---------------------------------------------------------------------------
 // ES3 reader functions (no DataView, no TypedArrays)
 // ---------------------------------------------------------------------------
 
 type ReaderType =
-    | "Uint8" | "Int8"
-    | "Uint16LE" | "Uint16BE" | "Int16LE" | "Int16BE"
-    | "Uint32LE" | "Uint32BE" | "Int32LE" | "Int32BE"
-    | "BigUint64LE" | "BigUint64BE" | "BigInt64LE" | "BigInt64BE"
-    | "Float32LE" | "Float32BE" | "Float64LE" | "Float64BE";
+    | "Uint8"
+    | "Int8"
+    | "Uint16LE"
+    | "Uint16BE"
+    | "Int16LE"
+    | "Int16BE"
+    | "Uint32LE"
+    | "Uint32BE"
+    | "Int32LE"
+    | "Int32BE"
+    | "BigUint64LE"
+    | "BigUint64BE"
+    | "BigInt64LE"
+    | "BigInt64BE"
+    | "Float32LE"
+    | "Float32BE"
+    | "Float64LE"
+    | "Float64BE";
 
 function getDependentReaders(reader: ReaderType): ReaderType[] {
     switch (reader) {
-        case "BigUint64LE": return ["Uint32LE", "BigUint64LE"];
-        case "BigInt64LE": return ["Uint32LE", "Int32LE", "BigInt64LE"];
-        case "BigUint64BE": return ["Uint32BE", "BigUint64BE"];
-        case "BigInt64BE": return ["Uint32BE", "Int32BE", "BigInt64BE"];
-        default: return [reader];
+        case "BigUint64LE":
+            return ["Uint32LE", "BigUint64LE"];
+        case "BigInt64LE":
+            return ["Uint32LE", "Int32LE", "BigInt64LE"];
+        case "BigUint64BE":
+            return ["Uint32BE", "BigUint64BE"];
+        case "BigInt64BE":
+            return ["Uint32BE", "Int32BE", "BigInt64BE"];
+        default:
+            return [reader];
     }
 }
 
@@ -198,7 +215,11 @@ type ES3PrimInfo = {
 
 const ES3_PRIM_MAP: Record<string, (le: boolean) => ES3PrimInfo> = {};
 
-function addES3Prim(name: string, size: number, make: (le: boolean) => ReaderType) {
+function addES3Prim(
+    name: string,
+    size: number,
+    make: (le: boolean) => ReaderType,
+) {
     ES3_PRIM_MAP[name] = (le) => ({ reader: make(le), size });
 }
 
@@ -210,33 +231,33 @@ function addES3PrimFixed(name: string, size: number, reader: ReaderType) {
 addES3PrimFixed("uint8", 1, "Uint8");
 addES3PrimFixed("int8", 1, "Int8");
 // 16-bit
-addES3Prim("uint16", 2, (le) => le ? "Uint16LE" : "Uint16BE");
+addES3Prim("uint16", 2, (le) => (le ? "Uint16LE" : "Uint16BE"));
 addES3PrimFixed("uint16le", 2, "Uint16LE");
 addES3PrimFixed("uint16be", 2, "Uint16BE");
-addES3Prim("int16", 2, (le) => le ? "Int16LE" : "Int16BE");
+addES3Prim("int16", 2, (le) => (le ? "Int16LE" : "Int16BE"));
 addES3PrimFixed("int16le", 2, "Int16LE");
 addES3PrimFixed("int16be", 2, "Int16BE");
 // 32-bit
-addES3Prim("uint32", 4, (le) => le ? "Uint32LE" : "Uint32BE");
+addES3Prim("uint32", 4, (le) => (le ? "Uint32LE" : "Uint32BE"));
 addES3PrimFixed("uint32le", 4, "Uint32LE");
 addES3PrimFixed("uint32be", 4, "Uint32BE");
-addES3Prim("int32", 4, (le) => le ? "Int32LE" : "Int32BE");
+addES3Prim("int32", 4, (le) => (le ? "Int32LE" : "Int32BE"));
 addES3PrimFixed("int32le", 4, "Int32LE");
 addES3PrimFixed("int32be", 4, "Int32BE");
 // 64-bit (returns number, not BigInt)
-addES3Prim("uint64", 8, (le) => le ? "BigUint64LE" : "BigUint64BE");
+addES3Prim("uint64", 8, (le) => (le ? "BigUint64LE" : "BigUint64BE"));
 addES3PrimFixed("uint64le", 8, "BigUint64LE");
 addES3PrimFixed("uint64be", 8, "BigUint64BE");
-addES3Prim("int64", 8, (le) => le ? "BigInt64LE" : "BigInt64BE");
+addES3Prim("int64", 8, (le) => (le ? "BigInt64LE" : "BigInt64BE"));
 addES3PrimFixed("int64le", 8, "BigInt64LE");
 addES3PrimFixed("int64be", 8, "BigInt64BE");
 // float
-addES3Prim("float32", 4, (le) => le ? "Float32LE" : "Float32BE");
+addES3Prim("float32", 4, (le) => (le ? "Float32LE" : "Float32BE"));
 addES3PrimFixed("float32le", 4, "Float32LE");
 addES3PrimFixed("float32be", 4, "Float32BE");
 addES3PrimFixed("floatle", 4, "Float32LE");
 addES3PrimFixed("floatbe", 4, "Float32BE");
-addES3Prim("float64", 8, (le) => le ? "Float64LE" : "Float64BE");
+addES3Prim("float64", 8, (le) => (le ? "Float64LE" : "Float64BE"));
 addES3PrimFixed("float64le", 8, "Float64LE");
 addES3PrimFixed("float64be", 8, "Float64BE");
 addES3PrimFixed("doublele", 8, "Float64LE");
@@ -260,8 +281,12 @@ class ES3DecodeCtx {
     readers = new Set<ReaderType>();
     pendingBits: Array<{ expr: string; bits: number }> = [];
 
-    push(line: string) { this.code += line + "\n"; }
-    tmp(): string { return `$t${this.tmpN++}`; }
+    push(line: string) {
+        this.code += line + "\n";
+    }
+    tmp(): string {
+        return `$t${this.tmpN++}`;
+    }
 
     addReader(reader: ReaderType) {
         for (const dep of getDependentReaders(reader)) {
@@ -300,7 +325,9 @@ class ES3DecodeCtx {
             } else if (numBits <= 24) {
                 this.addReader("Uint16BE");
                 this.addReader("Uint8");
-                this.push(`var ${val} = (readUint16BE(buf, off) << 8) | readUint8(buf, off + 2); off += 3;`);
+                this.push(
+                    `var ${val} = (readUint16BE(buf, off) << 8) | readUint8(buf, off + 2); off += 3;`,
+                );
                 return 24;
             } else {
                 this.addReader("Uint32BE");
@@ -316,7 +343,9 @@ class ES3DecodeCtx {
             if (length > rem) {
                 if (rem > 0) {
                     const mask = -1 >>> (32 - rem);
-                    this.push(`${pending[i].expr} = (${val} & 0x${(mask >>> 0).toString(16)}) << ${length - rem};`);
+                    this.push(
+                        `${pending[i].expr} = (${val} & 0x${(mask >>> 0).toString(16)}) << ${length - rem};`,
+                    );
                     length -= rem;
                 }
                 bitOffset = 0;
@@ -326,7 +355,9 @@ class ES3DecodeCtx {
             const offset = this.le ? bitOffset : sum - bitOffset - length;
             const mask = -1 >>> (32 - length);
             const op = length < origBits ? "|=" : "=";
-            this.push(`${pending[i].expr} ${op} (${val} >> ${offset}) & 0x${(mask >>> 0).toString(16)};`);
+            this.push(
+                `${pending[i].expr} ${op} (${val} >> ${offset}) & 0x${(mask >>> 0).toString(16)};`,
+            );
 
             if (origBits === 32) {
                 this.push(`${pending[i].expr} >>>= 0;`);
@@ -342,7 +373,11 @@ class ES3DecodeCtx {
 // ES3 decode field generation
 // ---------------------------------------------------------------------------
 
-function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: string): void {
+function genES3DecodeFields(
+    fields: FieldDescriptor[],
+    ctx: ES3DecodeCtx,
+    tgt: string,
+): void {
     for (const field of fields) {
         switch (field.kind) {
             case "endianness": {
@@ -364,20 +399,28 @@ function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: s
                     reader = `${T}${bits}${le ? "LE" : "BE"}` as ReaderType;
                 }
                 ctx.addReader(reader);
-                ctx.push(`${tgt}.${name} = read${reader}(buf, off); off += ${bits / 8};`);
+                ctx.push(
+                    `${tgt}.${name} = read${reader}(buf, off); off += ${bits / 8};`,
+                );
                 break;
             }
             case "float": {
                 ctx.flushBits();
                 const { name, bits } = field;
                 const le = field.le !== undefined ? field.le : ctx.le;
-                const reader: ReaderType = `Float${bits}${le ? "LE" : "BE"}` as ReaderType;
+                const reader: ReaderType =
+                    `Float${bits}${le ? "LE" : "BE"}` as ReaderType;
                 ctx.addReader(reader);
-                ctx.push(`${tgt}.${name} = read${reader}(buf, off); off += ${bits / 8};`);
+                ctx.push(
+                    `${tgt}.${name} = read${reader}(buf, off); off += ${bits / 8};`,
+                );
                 break;
             }
             case "bit": {
-                ctx.pendingBits.push({ expr: `${tgt}.${field.name}`, bits: field.bits });
+                ctx.pendingBits.push({
+                    expr: `${tgt}.${field.name}`,
+                    bits: field.bits,
+                });
                 break;
             }
             case "skip": {
@@ -387,15 +430,18 @@ function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: s
             }
             case "buffer": {
                 ctx.flushBits();
-                const lenExpr = typeof field.length === "number"
-                    ? `${field.length}`
-                    : `${tgt}.${field.length}`;
+                const lenExpr =
+                    typeof field.length === "number"
+                        ? `${field.length}`
+                        : `${tgt}.${field.length}`;
                 const idx = ctx.subarrayN++;
                 const iVar = `$i${idx}`;
                 const lenVar = `$len${idx}`;
                 ctx.push(`${tgt}.${field.name} = [];`);
                 ctx.push(`var ${lenVar} = ${lenExpr};`);
-                ctx.push(`for(var ${iVar} = 0; ${iVar} < ${lenVar}; ${iVar}++){`);
+                ctx.push(
+                    `for(var ${iVar} = 0; ${iVar} < ${lenVar}; ${iVar}++){`,
+                );
                 ctx.push(`${tgt}.${field.name}[${iVar}] = buf[off + ${iVar}];`);
                 ctx.push(`}`);
                 ctx.push(`off += ${lenVar};`);
@@ -404,18 +450,27 @@ function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: s
             case "array": {
                 ctx.flushBits();
                 const { name, itemType, length } = field;
-                const lenExpr = typeof length === "number"
-                    ? `${length}`
-                    : typeof length === "string"
-                        ? `${tgt}.${length}`
-                        : (() => { throw new Error("Function length not supported in ES3 compiler"); })();
+                const lenExpr =
+                    typeof length === "number"
+                        ? `${length}`
+                        : typeof length === "string"
+                          ? `${tgt}.${length}`
+                          : (() => {
+                                throw new Error(
+                                    "Function length not supported in ES3 compiler",
+                                );
+                            })();
                 const i = ctx.tmp();
                 ctx.push(`${tgt}.${name} = [];`);
-                ctx.push(`for(var ${i} = 0, $n${i} = ${lenExpr}; ${i} < $n${i}; ${i}++){`);
+                ctx.push(
+                    `for(var ${i} = 0, $n${i} = ${lenExpr}; ${i} < $n${i}; ${i}++){`,
+                );
                 if (typeof itemType === "string") {
                     const info = es3PrimInfo(itemType, ctx.le);
                     ctx.addReader(info.reader);
-                    ctx.push(`${tgt}.${name}.push(read${info.reader}(buf, off)); off += ${info.size};`);
+                    ctx.push(
+                        `${tgt}.${name}.push(read${info.reader}(buf, off)); off += ${info.size};`,
+                    );
                 } else {
                     const item = ctx.tmp();
                     ctx.push(`var ${item} = {};`);
@@ -428,7 +483,11 @@ function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: s
             case "nested": {
                 if (field.name) {
                     ctx.push(`${tgt}.${field.name} = {};`);
-                    genES3DecodeFields(field.parser.fields, ctx, `${tgt}.${field.name}`);
+                    genES3DecodeFields(
+                        field.parser.fields,
+                        ctx,
+                        `${tgt}.${field.name}`,
+                    );
                 } else {
                     genES3DecodeFields(field.parser.fields, ctx, tgt);
                 }
@@ -443,7 +502,9 @@ function genES3DecodeFields(fields: FieldDescriptor[], ctx: ES3DecodeCtx, tgt: s
                     genES3DecodeFields(sub.fields, ctx, choiceTgt);
                     ctx.push(`break;`);
                 }
-                ctx.push(`default: throw new Error("Unknown choice tag: " + ${tgt}.${field.tag});`);
+                ctx.push(
+                    `default: throw new Error("Unknown choice tag: " + ${tgt}.${field.tag});`,
+                );
                 ctx.push(`}`);
                 break;
             }
@@ -483,7 +544,10 @@ export function generateES3Body(fields: FieldDescriptor[]): ES3GenerateResult {
  * Generate a complete standalone ES3 decode function including reader helpers.
  * Returns source code that defines a `decode(buf)` function.
  */
-export function generateES3Decoder(fields: FieldDescriptor[], fnName = "decode"): string {
+export function generateES3Decoder(
+    fields: FieldDescriptor[],
+    fnName = "decode",
+): string {
     const { body, readers } = generateES3Body(fields);
     const lines: string[] = [];
 

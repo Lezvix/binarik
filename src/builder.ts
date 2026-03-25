@@ -1,6 +1,14 @@
 import type {
-    Endianness, FieldDescriptor, Compiler, Parser, Prettify,
-    PrimitiveType, InferArrayItem, InferChoices,
+    Endianness,
+    FieldDescriptor,
+    Compiler,
+    Parser,
+    Prettify,
+    PrimitiveType,
+    InferArrayItem,
+    InferChoices,
+    InputType,
+    ResolveInput,
 } from "./types";
 
 const VALID_NAME = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/;
@@ -60,7 +68,12 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
     }
 
     // -- private helpers --
-    private _addInt(name: string, size: 8 | 16 | 32 | 64, signed: boolean, le?: boolean): any {
+    private _addInt(
+        name: string,
+        size: 8 | 16 | 32 | 64,
+        signed: boolean,
+        le?: boolean,
+    ): any {
         validateName(name);
         this.fields.push({ kind: "int", name, bits: size, signed, le });
         return this;
@@ -73,48 +86,113 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
     }
 
     // -- integers (number) --
-    uint8<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 8, false); }
-    uint16<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, false); }
-    uint32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, false); }
-    int8<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 8, true); }
-    int16<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, true); }
-    int32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, true); }
+    uint8<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 8, false);
+    }
+    uint16<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, false);
+    }
+    uint32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, false);
+    }
+    int8<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 8, true);
+    }
+    int16<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, true);
+    }
+    int32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, true);
+    }
 
     // -- integers (explicit endianness, number) --
-    uint16le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, false, true); }
-    uint16be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, false, false); }
-    int16le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, true, true); }
-    int16be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 16, true, false); }
-    uint32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, false, true); }
-    uint32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, false, false); }
-    int32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, true, true); }
-    int32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addInt(name, 32, true, false); }
+    uint16le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, false, true);
+    }
+    uint16be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, false, false);
+    }
+    int16le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, true, true);
+    }
+    int16be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 16, true, false);
+    }
+    uint32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, false, true);
+    }
+    uint32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, false, false);
+    }
+    int32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, true, true);
+    }
+    int32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addInt(name, 32, true, false);
+    }
 
     // -- integers (bigint) --
-    uint64<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, false); }
-    uint64le<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, false, true); }
-    uint64be<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, false, false); }
-    int64<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, true); }
-    int64le<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, true, true); }
-    int64be<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> { return this._addInt(name, 64, true, false); }
+    uint64<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, false);
+    }
+    uint64le<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, false, true);
+    }
+    uint64be<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, false, false);
+    }
+    int64<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, true);
+    }
+    int64le<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, true, true);
+    }
+    int64be<K extends string>(name: K): ParserBuilder<T & Record<K, bigint>> {
+        return this._addInt(name, 64, true, false);
+    }
 
     // -- floats --
-    float32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 32); }
-    float64<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 64); }
-    floatle<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 32, true); }
-    floatbe<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 32, false); }
-    doublele<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 64, true); }
-    doublebe<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 64, false); }
-    float32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 32, true); }
-    float32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 32, false); }
-    float64le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 64, true); }
-    float64be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> { return this._addFloat(name, 64, false); }
+    float32<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 32);
+    }
+    float64<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 64);
+    }
+    floatle<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 32, true);
+    }
+    floatbe<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 32, false);
+    }
+    doublele<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 64, true);
+    }
+    doublebe<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 64, false);
+    }
+    float32le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 32, true);
+    }
+    float32be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 32, false);
+    }
+    float64le<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 64, true);
+    }
+    float64be<K extends string>(name: K): ParserBuilder<T & Record<K, number>> {
+        return this._addFloat(name, 64, false);
+    }
 
     // -- bit fields --
-    bit<K extends string>(name: K, bits: number): ParserBuilder<T & Record<K, number>> {
+    bit<K extends string>(
+        name: K,
+        bits: number,
+    ): ParserBuilder<T & Record<K, number>> {
         validateName(name);
         if (!Number.isInteger(bits) || bits < 1 || bits > 32) {
-            throw new RangeError(`bit size must be an integer in [1,32], got ${bits}`);
+            throw new RangeError(
+                `bit size must be an integer in [1,32], got ${bits}`,
+            );
         }
         this.fields.push({ kind: "bit", name, bits });
         return this as any;
@@ -127,17 +205,34 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
         length: number | (string & keyof T) | ((this: Prettify<T>) => number),
     ): ParserBuilder<T & Record<K, InferArrayItem<Item>[]>> {
         validateName(name);
-        this.fields.push({ kind: "array", name, itemType: itemType as any, length: length as any });
+        this.fields.push({
+            kind: "array",
+            name,
+            itemType: itemType as any,
+            length: length as any,
+        });
         return this as any;
     }
 
     // -- nested --
-    nested<U extends Record<string, any>>(parser: ParserBuilder<U>): ParserBuilder<T & U>;
-    nested<K extends string, U extends Record<string, any>>(name: K, parser: ParserBuilder<U>): ParserBuilder<T & Record<K, Prettify<U>>>;
-    nested(nameOrParser: string | ParserBuilder<any>, parser?: ParserBuilder<any>): any {
+    nested<U extends Record<string, any>>(
+        parser: ParserBuilder<U>,
+    ): ParserBuilder<T & U>;
+    nested<K extends string, U extends Record<string, any>>(
+        name: K,
+        parser: ParserBuilder<U>,
+    ): ParserBuilder<T & Record<K, Prettify<U>>>;
+    nested(
+        nameOrParser: string | ParserBuilder<any>,
+        parser?: ParserBuilder<any>,
+    ): any {
         if (typeof nameOrParser === "string") {
             validateName(nameOrParser);
-            this.fields.push({ kind: "nested", name: nameOrParser, parser: parser! });
+            this.fields.push({
+                kind: "nested",
+                name: nameOrParser,
+                parser: parser!,
+            });
         } else {
             this.fields.push({ kind: "nested", parser: nameOrParser });
         }
@@ -146,10 +241,13 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
 
     // -- choice --
     choice<C extends Record<number, ParserBuilder<any>>>(
-        tag: string & keyof T, choices: C
+        tag: string & keyof T,
+        choices: C,
     ): ParserBuilder<T & InferChoices<C>>;
     choice<K extends string, C extends Record<number, ParserBuilder<any>>>(
-        name: K, tag: string & keyof T, choices: C
+        name: K,
+        tag: string & keyof T,
+        choices: C,
     ): ParserBuilder<T & Record<K, InferChoices<C>>>;
     choice(
         nameOrTag: string,
@@ -178,7 +276,7 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
     buffer<K extends string>(
         name: K,
         length: number | (string & keyof T),
-    ): ParserBuilder<T & Record<K, Uint8Array>> {
+    ): ParserBuilder<T & Record<K, InputType>> {
         validateName(name);
         this.fields.push({ kind: "buffer", name, length });
         return this as any;
@@ -194,14 +292,17 @@ export class ParserBuilder<T extends Record<string, any> = {}> {
     }
 
     // -- compile --
-    compile<I>(comp: Compiler<I>): Parser<I, Prettify<T>> {
-        return comp(this.fields) as Parser<I, Prettify<T>>;
+    compile<I>(comp: Compiler<I>): Parser<I, Prettify<ResolveInput<T, I>>> {
+        return comp(this.fields) as Parser<I, Prettify<ResolveInput<T, I>>>;
     }
 }
 
 // Add bit1..bit32 convenience methods
 for (let i = 1; i <= 32; i++) {
-    (ParserBuilder.prototype as any)[`bit${i}`] = function (this: ParserBuilder<any>, name: string) {
+    (ParserBuilder.prototype as any)[`bit${i}`] = function (
+        this: ParserBuilder<any>,
+        name: string,
+    ) {
         return this.bit(name, i);
     };
 }
